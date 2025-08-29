@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+  <meta charset="UTF-8">
+  <title>ML API</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Hind:300' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+
+
+<!-- Training trigger -->
+<form action="{{ url_for('training') }}" method="get">
+    <button type="submit" class="btn btn-secondary">Retrain Model</button>
+</form>
+
+  
+</head>
+
+<body>
+ <div class="login">
+	<h1>Loan Default Prediction</h1>
+
+     <!-- Main Input For Receiving Query to our ML -->
+    <form action="{{ url_for('predict')}}"method="post">
+      <input type="text" name="loan_limit" placeholder="loan_limit" required="required" /><br>
+    	<input type="text" name="Gender" placeholder="Gender" required="required" /><br>
+        <input type="text" name="approv_in_adv" placeholder="approv_in_adv" required="required" /><br>
+        <input type="text" name="loan_type" placeholder="loan_type" required="required" /><br>
+        <input type="text" name="loan_purpose" placeholder="loan_purpose" required="required" /><br>
+        <input type="text" name="Credit_Worthiness" placeholder="Credit_Worthiness" required="required" /><br>
+        <input type="text" name="open_credit" placeholder="open_credit" required="required" /><br>
+        <input type="text" name="business_or_commercial" placeholder="business_or_commercial" required="required" /><br>
+        <input type="text" name="loan_amount" placeholder="loan_amount" required="required" /><br>
+        <input type="text" name="rate_of_interest" placeholder="rate_of_interest" required="required" /><br>
+        <input type="text" name="Interest_rate_spread" placeholder="Interest_rate_spread" required="required" /><br>
+        <input type="text" name="Upfront_charges" placeholder="Upfront_charges" required="required" /><br>
+        <input type="text" name="term" placeholder="term" required="required" /><br>
+        <input type="text" name="Neg_ammortization" placeholder="Neg_ammortization" required="required" /><br>
+        <input type="text" name="interest_only" placeholder="interest_only"  /><br>
+        <input type="text" name="lump_sum_payment" placeholder="lump_sum_payment"  /><br>
+        <input type="text" name="property_value" placeholder="property_value" /><br>
+        <input type="text" name="construction_type" placeholder="construction_type"  /><br>
+        <input type="text" name="occupancy_type" placeholder="occupancy_type" /><br>
+        <input type="text" name="Secured_by" placeholder="Secured_by"  /><br>
+        <input type="text" name="total_units" placeholder="total_units"  /><br>
+        <input type="text" name="income" placeholder="income"  /><br>
+        <input type="text" name="credit_type" placeholder="credit_type"  /><br>
+        <input type="text" name="Credit_Score" placeholder="Credit_Score"  /><br>
+        <input type="text" name="co-applicant_credit_type" placeholder="co-applicant_credit_type"  /><br>
+        <input type="text" name="age" placeholder="age"  /><br>
+        <input type="text" name="submission_of_application" placeholder="submission_of_application"  /><br>
+        <input type="text" name="LTV" placeholder="LTV"  /><br>
+        <input type="text" name="Region" placeholder="Region"  /><br>
+        <input type="text" name="Security_Type" placeholder="Security_Type"  /><br>
+        <input type="text" name="dtir1" placeholder="dtir1"  /><br>
+
+
+        <button type="submit" class="btn btn-primary btn-block btn-large">Predict</button>
+    </form>
+
+   <br>
+   <br>
+  
+   
+ </div>
+ {{prediction_text}}
+
+</body>
+</html>

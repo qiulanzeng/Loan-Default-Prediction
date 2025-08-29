@@ -1,3 +1,10 @@
 pandas
 scikit-learn
 ipykernel
+pandas
+numpy
+matplotlib
+tqdm
+joblib
+logging
+gunicorn
