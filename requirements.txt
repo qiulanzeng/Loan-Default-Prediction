@@ -7,4 +7,7 @@ matplotlib
 tqdm
 joblib
 logging
-gunicorn
+#gunicorn
+fastapi
+uvcorn
+python-multipart
