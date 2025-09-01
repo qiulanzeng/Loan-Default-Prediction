@@ -6,8 +6,7 @@ numpy
 matplotlib
 tqdm
 joblib
-logging
 #gunicorn
 fastapi
-uvcorn
+uvicorn
 python-multipart
