@@ -36,8 +36,14 @@ sudo usermod -aG docker ubuntu
 newgrp docker
 
 # Step6: Configure EC2 as self-hosted runner (vm) in github:
-In EC2 terminal, excute the commands of Downloading and configuring runners.
+In EC2 terminal, Download and configure runners (a software agent) that receives jobs from Github, run the jobs, and reporting back the results to Github.
 
+# Step7: Setup Github secretes:
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION = 
+AWS_ECR_LOGIN_URI = 
+ECR_REPOSITORY_NAME = 
 
 
 ## 1. Login to AWS console.
