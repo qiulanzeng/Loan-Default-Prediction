@@ -9,8 +9,35 @@ https://www.kaggle.com/datasets/yasserh/loan-default-dataset
 
 # Step1: Build image locally. Tool: Docker
 - Open terminal in the project and run: docker build -t loan_default_prediction:latest .
-- verify the image was built: in the terminal, run: docker images.
+- verify the image was built: in the terminal, run: docker images
 - Run the container locally: docker run -p 8000:8000 loan_default_prediction:latest
+
+# Step2: Create IAM user for deployment.
+- Add user, and for the user, Attach policies directly:
+    - AmazonEC2ContainerRegistryFullAccess
+    - AmazonEC2FullAccess
+- Create access key under Security credentials.
+
+# Step3: Create ECR repo to store/save docker image.
+- Save url of the created repository.
+
+# Step4: Launch instance in EC2.
+
+# Step5: Open EC2 and install docker in EC2 machine.
+
+#optinal
+sudo apt-get update -y
+sudo apt-get upgrade
+
+#required
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker ubuntu
+newgrp docker
+
+# Step6: Configure EC2 as self-hosted runner (vm) in github:
+In EC2 terminal, excute the commands of Downloading and configuring runners.
+
 
 
 ## 1. Login to AWS console.
@@ -35,11 +62,7 @@ https://www.kaggle.com/datasets/yasserh/loan-default-dataset
 
 5. Lauch your docker image in EC2
 
-#Policy:
 
-1. AmazonEC2ContainerRegistryFullAccess
-
-2. AmazonEC2FullAccess
 
 
 ## 3. Create ECR repo to store/save docker image
