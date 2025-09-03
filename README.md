@@ -91,7 +91,7 @@ http://<your-ec2-ip>:8080
 The model API or frontend should be live!
 
 You can see something as follows:
-
+![alt text](deployed_website.png)
 
 ## Step 12: Tear down resources (optional)
 
