@@ -1,110 +1,99 @@
 # Loan-Default-Prediction
 
-This dataset has been taken from Coursera's Loan Default Prediction Challenge https://www.coursera.org/projects/data-science-coding-challenge-loan-default-prediction.
-
-https://www.kaggle.com/datasets/yasserh/loan-default-dataset
+This dataset has been taken from https://www.kaggle.com/datasets/yasserh/loan-default-dataset
 
 
-# AWS-CICD-Deployment-with-Github-Actions
+# Full End-to-End CI/CD Summary for ML Model Deployment (Docker + GitHub Actions + AWS EC2)
+## Step 1: Build and test the ML model locally. Tool: VS Code.
+## Step 2: Dockerize the app and run container locally. Tool: Docker
+- Open terminal in the project and run:
+    - docker build -t loan_default_prediction:latest .
+- Verify the image was built. In the terminal, run:
+    -  docker images
+- Run the container locally:
+    - docker run -p 8000:8000 loan_default_prediction:latest
+- Test the app at http://localhost:8080 to ensure it's working in the container.
 
-# Step1: Build image locally. Tool: Docker
-- Open terminal in the project and run: docker build -t loan_default_prediction:latest .
-- verify the image was built: in the terminal, run: docker images
-- Run the container locally: docker run -p 8000:8000 loan_default_prediction:latest
-
-# Step2: Create IAM user for deployment.
-- Add user, and for the user, Attach policies directly:
+## Step 3: Create IAM user for deployment in AWS
+Go to AWS → IAM → Users → Create User
+- Attach the following policies:
     - AmazonEC2ContainerRegistryFullAccess
     - AmazonEC2FullAccess
-- Create access key under Security credentials.
 
-# Step3: Create ECR repo to store/save docker image.
-- Save url of the created repository.
+- Create access keys (CSV) and download it — contains:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
 
-# Step4: Launch instance in EC2.
+## Step 4: Create ECR repository in AWS
+- Go to AWS → ECR → Create Repository (e.g., loan-default-predictor)
+- Save the ECR URL
 
-# Step5: Open EC2 and install docker in EC2 machine.
+## Step 5: Launch EC2 instance
+- Choose Ubuntu, t2.micro or larger
+- Create and download a key pair (.pem file)
+- Enable inbound rules for ports:
+    - 22 (SSH)
+    - 80 (HTTP)
+    - 443 (HTTPS)
+    - 8080 (Custom TCP)
+- Launch the instance
+
+## Step 6: Install Docker on the EC2 instance (only need to install Docker once for one instance)
 
 #optinal
-sudo apt-get update -y
-sudo apt-get upgrade
+- sudo apt-get update -y
+- sudo apt-get upgrade
 
 #required
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker ubuntu
-newgrp docker
-
-# Step6: Configure EC2 as self-hosted runner (vm) in github:
-In EC2 terminal, Download and configure runners (a software agent) that receives jobs from Github, run the jobs, and reporting back the results to Github.
-
-# Step7: Setup Github secretes:
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_REGION = 
-AWS_ECR_LOGIN_URI = 
-ECR_REPOSITORY_NAME = 
+- curl -fsSL https://get.docker.com -o get-docker.sh
+- sudo sh get-docker.sh
+- sudo usermod -aG docker ubuntu
+- newgrp docker
+- docker --version
 
 
-## 1. Login to AWS console.
+## Step 7: Configure EC2 as a self-hosted GitHub runner
+In GitHub:
+- Settings → Actions → Runners → New self-hosted runner
 
-## 2. Create IAM user for deployment.
-#with specific access
+Follow instructions to:
+- Download and install the runner on EC2
+- Run ./config.sh and ./run.sh
+- It will show as idle in GitHub runners list
 
-1. EC2 access : It is virtual machine
+## Step 8: Add GitHub secrets for AWS + ECR
+- In GitHub → Settings → Secrets and Variables → Actions, add:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_REGION
+    - AWS_ECR_LOGIN_URI → just the domain part
+    - ECR_REPOSITORY_NAME 
+## Step 9: Create GitHub Actions workflow (main.yaml)
+In .github/workflows/main.yaml, define:
+- CI: Lint, test your code
+- Build Docker image on GitHub-hosted runner
+- Push to Amazon ECR
+- CD: Pull image on EC2, stop old container, run new one
 
-2. ECR: Elastic Container registry to save your docker image in aws
+## Step 10: Commit and push code to GitHub
+- This triggers GitHub Actions
+- CI/CD pipeline runs automatically
 
+## Step 11: Add port mapping in EC2 Security Group
+In AWS → EC2 → Security Groups → Edit Inbound Rules
+Add rule:
+- Type: Custom TCP
+- Port: 8080
+- Source: 0.0.0.0/0 (or restrict to your IP)
 
-#Description: About the deployment
+## Step 12: Test the deployed website
+Go to EC2 Public IPv4 Address:
+http://<your-ec2-ip>:8080
+The model API or frontend should be live!
 
-1. Build docker image of the source code
+## Step 13: Tear down resources (optional)
 
-2. Push your docker image to ECR
-
-3. Launch Your EC2 
-
-4. Pull Your image from ECR in EC2
-
-5. Lauch your docker image in EC2
-
-
-
-
-## 3. Create ECR repo to store/save docker image
-- Save the URI: 566373416292.dkr.ecr.us-east-1.amazonaws.com/text-s
-
-
-# 4. Create EC2 machine (Ubuntu)
-
-# 5. Open EC2 and Install docker in EC2 Machine:
-#optinal
-
-sudo apt-get update -y
-
-sudo apt-get upgrade
-
-#required
-
-curl -fsSL https://get.docker.com -o get-docker.sh
-
-sudo sh get-docker.sh
-
-sudo usermod -aG docker ubuntu
-
-newgrp docker
-
-# 6. Configure EC2 as self-hosted runner:
-setting>actions>runner>new self hosted runner> choose os> then run command one by one
-
-# 7. Setup github secrets:
-
-AWS_ACCESS_KEY_ID=
-
-AWS_SECRET_ACCESS_KEY=
-
-AWS_REGION = us-east-1
-
-AWS_ECR_LOGIN_URI = demo>>  566373416292.dkr.ecr.ap-south-1.amazonaws.com
-
-ECR_REPOSITORY_NAME = simple-app
+To clean up:
+- Terminate the EC2 instance
+- Delete the ECR repository
+- Delete the IAM user
