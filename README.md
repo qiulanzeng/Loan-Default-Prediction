@@ -36,7 +36,13 @@ Go to AWS → IAM → Users → Create User
     - 80 (HTTP)
     - 443 (HTTPS)
     - 8080 (Custom TCP)
-- Launch the instance
+- Add port mapping in EC2 Security Group
+In AWS → EC2 → Security Groups → Edit Inbound Rules
+Add rule:
+    - Type: Custom TCP
+    - Port: 8080
+    - Source: 0.0.0.0/0 (or restrict to your IP)
+    - Launch the instance
 
 ## Step 6: Install Docker on the EC2 instance (only need to install Docker once for one instance)
 
@@ -79,19 +85,15 @@ In .github/workflows/main.yaml, define:
 - This triggers GitHub Actions
 - CI/CD pipeline runs automatically
 
-## Step 11: Add port mapping in EC2 Security Group
-In AWS → EC2 → Security Groups → Edit Inbound Rules
-Add rule:
-- Type: Custom TCP
-- Port: 8080
-- Source: 0.0.0.0/0 (or restrict to your IP)
-
-## Step 12: Test the deployed website
+## Step 11: Test the deployed website
 Go to EC2 Public IPv4 Address:
 http://<your-ec2-ip>:8080
 The model API or frontend should be live!
 
-## Step 13: Tear down resources (optional)
+You can see something as follows:
+
+
+## Step 12: Tear down resources (optional)
 
 To clean up:
 - Terminate the EC2 instance
