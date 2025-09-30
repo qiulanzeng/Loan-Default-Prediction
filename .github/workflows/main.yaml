@@ -43,7 +43,7 @@ jobs:
         run: pytest tests/
 
   # ---------------------------
-  # Build & Push Docker to ECR
+  # Build & Push Docker to ECR, Continuous Delivery.
   # ---------------------------
   build-and-push-ecr-image:
     name: Build and Push Docker Image
