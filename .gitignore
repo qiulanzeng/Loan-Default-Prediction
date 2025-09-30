@@ -1,3 +1,8 @@
+
+#data
+data/Loan_Default.csv.zip
+data/Loan_defulat_coursera.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
