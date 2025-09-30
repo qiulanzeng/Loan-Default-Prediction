@@ -1,43 +1,64 @@
-name: workflow # This is name of your GitHub Actions workflow.
+name: Loan Default Prediction Workflow
 
 on:
-  push: # This workflow triggers whenever code is pushed to the repository.
+  push:
     branches:
-      - main # Only runs when the main branch receives a push.
+      - main
     paths-ignore:
-      - 'README.md' # Changes to README.md will not trigger the workflow.
+      - 'README.md'
+  pull_request:
 
 permissions:
-  id-token: write # Required if you are using OpenID Connect (OIDC) to assume roles in AWS.
-  contents: read # The workflow can read repository contents (needed for checking out code).
+  id-token: write
+  contents: read
 
 jobs:
-  integration: # Continuous Integration (CI), this job is meant to ensure code quality before building/deploying.
+  # ---------------------------
+  # Continuous Integration (CI)
+  # ---------------------------
+  ci:
     name: Continuous Integration
-    runs-on: ubuntu-latest # Job runs on Github-hosted Ubuntu runner.
-    steps:
-      - name: Checkout Code # Pulls your repo into the runner.
-        uses: actions/checkout@v3
-
-      - name: Lint code # Placeholder for code linting (currently just prints text).
-        run: echo "Linting repository"
-
-      - name: Run unit tests (Placeholder for running unit tests).
-        run: echo "Running unit tests"
-
-  build-and-push-ecr-image: # Continuous Delivery (CD)
-    name: Continuous Delivery
-    needs: integration # This job will only run if integration succeeds.
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code # needed again because each job runs in a fresh runner.
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Utilities # Install jq (for JSON processing) and unzip.
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies for CI
+        run: |
+          pip install -r requirements.txt
+          pip install pytest flake8 black
+
+      - name: Lint code
+        run: flake8 .
+
+      - name: Check code formatting
+        run: black --check .
+
+      - name: Run unit tests
+        run: pytest tests/
+
+  # ---------------------------
+  # Build & Push Docker to ECR
+  # ---------------------------
+  build-and-push-ecr-image:
+    name: Build and Push Docker Image
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Utilities
         run: |
           sudo apt-get update
           sudo apt-get install -y jq unzip
-      - name: Configure AWS credentials # Authenticates GitHub Actions with your AWS account.
+
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -55,24 +76,19 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: latest
         run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          
-          # This tells GitHub Actions to create an output variable named image.
-          # $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -> This is the full URI of your Docker image in ECR.
-          # Downstream jobs (CD) can access this output using ${{ needs.build-and-push-ecr-image.outputs.image }}
-          
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
-          
-          
-  Continuous-Deployment: # Deploy to server
-    needs: build-and-push-ecr-image # Runs only if the image was successfully built and pushed.
-    runs-on: self-hosted # This is your own server, likely where the service should run.
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+  # ---------------------------
+  # Continuous Deployment (CD)
+  # ---------------------------
+  continuous-deployment:
+    name: Continuous Deployment
+    needs: build-and-push-ecr-image
+    runs-on: self-hosted
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
@@ -85,28 +101,22 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      
-      
-      - name: Pull latest images
+
+      - name: Pull latest image
         run: |
-         docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-         
-      # - name: Stop and remove container if running
-      #   run: |
-      #    docker ps -q --filter "name=loan_default" | grep -q . && docker stop texts && docker rm -fv texts
-       
-      - name: Run Docker Image to serve users
-        run: | 
-         docker run -d -p 8080:8080 --name=loan_default -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}'  ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-        
-        # docker run -> starts a new container.
-        # -d -> runs the container in detached mode (in the background).
-        # -p 8080:8080 -> maps host port 8080 to container port 8080.
-        # --name=loan_default -> names the container loan_default.
-        # -e... -> passes environment variables into the container.
-        # ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest → Specifies the Docker image to run.
-        
-      
-      - name: Clean previous images and containers
+          docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+      - name: Stop and remove existing container if running
         run: |
-         docker system prune -f
+          docker ps -q --filter "name=loan_default" | grep -q . && docker stop loan_default && docker rm -fv loan_default || echo "No existing container"
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8080:8080 --name=loan_default \
+            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            -e AWS_REGION=${{ secrets.AWS_REGION }} \
+            ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+      - name: Clean unused images & containers
+        run: docker system prune -f

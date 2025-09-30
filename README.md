@@ -137,3 +137,52 @@ To clean up:
 - Browser receives response
 
 
+
+# 1️⃣ Continuous Integration (CI)
+- Purpose: Catch errors before deployment.
+- What happens in CI:
+    - Checkout code
+        - Pulls your latest changes from GitHub.
+    - Set up Python environment
+        - Installs Python 3.10 on GitHub-hosted runner.
+    - Install dev dependencies
+        - pytest → run tests
+        - flake8 → lint code
+        - black → check formatting
+    - Lint code
+        - Checks for style issues, unused imports, bad practices.
+    - Check formatting
+        - Ensures consistent code style with black.
+    - Run unit tests. Verifies that:
+        - Model loads correctly (Predictor class)
+        - Predictions run without errors
+        - Outputs are correct shape / format
+        - Optional: simple accuracy or AUC thresholds
+    - Docker image build (optional in CI)
+        - Confirms the Dockerfile builds successfully
+        - Image can later be pushed to ECR
+
+CI Goal: Catch code errors, formatting issues, failing tests early, before the image reaches production.
+
+# 2️⃣ Continuous Deployment (CD)
+- Purpose: Automatically deploy your tested code to production (EC2).
+- What happens in CD:
+    - Checkout code
+        - Pulls the latest version (main branch).
+    - Configure AWS credentials
+        - Needed to pull/push Docker images and deploy to EC2.
+    - Login to Amazon ECR
+        - Allows pulling/pushing Docker images.
+    - Pull latest Docker image
+        - Fetches the image built and pushed during CI.
+    - Stop existing container (if running)
+        - Ensures no conflicts with old versions
+    - Run new container
+        - Map host port (8080) to container port (8080)
+        - Pass AWS credentials as environment variables
+        - Starts serving predictions
+
+    - Clean unused images/containers
+        - Keeps EC2 clean and prevents disk bloat
+
+CD Goal: Deploy a tested, working Docker image to EC2 automatically, safely replacing old versions.
