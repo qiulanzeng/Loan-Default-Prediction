@@ -99,3 +99,40 @@ To clean up:
 - Terminate the EC2 instance
 - Delete the ECR repository
 - Delete the IAM user
+
+
+## Uvicorn
+- It is a Python ASGI web server.
+- Its responsibilities:
+    - Listen for HTTP/WebSocket requests.
+    - Package each request into the three ASGI parameters:
+        - scope: request metadata (path, HTTP method, etc.)
+        - receive: an async function to receive client messages
+        - send: an async function to send responses back
+    - Call an ASGI callable (e.g., a FastAPI instance app = FastAPI()).
+
+## FastAPI Application Instance
+- Acts as an ASGI callable.
+- Receives the (scope, receive, send) parameters from Uvicorn.
+- Processing steps:
+    - Match the route based on scope
+    - Call the corresponding route handler (e.g., predition())
+    - Get the result
+    - Return the result via send to Uvicorn
+
+## Response back to the client
+- Uvicorn sends the response received from send back to the browser or client.
+
+# Simplified Flow Diagram
+Browser request
+      ↓
+   Uvicorn (ASGI server)
+      ↓  Packages request as scope, receive, send
+   FastAPI app (ASGI callable)
+      ↓  Matches route and calls handler
+Route handler (prediction function)
+      ↓  Returns result to FastAPI app
+      ↓  Sent via send to Uvicorn
+      ↓
+Browser receives response
+
