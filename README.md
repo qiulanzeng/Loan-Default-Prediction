@@ -124,15 +124,16 @@ To clean up:
 - Uvicorn sends the response received from send back to the browser or client.
 
 # Simplified Flow Diagram
-Browser request
-      ↓
-   Uvicorn (ASGI server)
-      ↓  Packages request as scope, receive, send
-   FastAPI app (ASGI callable)
-      ↓  Matches route and calls handler
-Route handler (prediction function)
-      ↓  Returns result to FastAPI app
-      ↓  Sent via send to Uvicorn
-      ↓
-Browser receives response
+
+- Browser request
+  - ↓
+- Uvicorn (ASGI server)
+  - ↓ Packages request as scope, receive, send
+- FastAPI app (ASGI callable)
+  - ↓ Matches route and calls handler
+- Route handler (prediction function)
+  - ↓ Returns result to FastAPI app
+  - ↓ Sent via send to Uvicorn
+- Browser receives response
+
 
