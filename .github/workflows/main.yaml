@@ -1,43 +1,43 @@
-name: workflow
+name: workflow # This is name of your GitHub Actions workflow.
 
 on:
-  push:
+  push: # This workflow triggers whenever code is pushed to the repository.
     branches:
-      - main
+      - main # Only runs when the main branch receives a push.
     paths-ignore:
-      - 'README.md'
+      - 'README.md' # Changes to README.md will not trigger the workflow.
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write # Required if you are using OpenID Connect (OIDC) to assume roles in AWS.
+  contents: read # The workflow can read repository contents (needed for checking out code).
 
 jobs:
-  integration:
+  integration: # Continuous Integration (CI), this job is meant to ensure code quality before building/deploying.
     name: Continuous Integration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Job runs on Github-hosted Ubuntu runner.
     steps:
-      - name: Checkout Code
+      - name: Checkout Code # Pulls your repo into the runner.
         uses: actions/checkout@v3
 
-      - name: Lint code
+      - name: Lint code # Placeholder for code linting (currently just prints text).
         run: echo "Linting repository"
 
-      - name: Run unit tests
+      - name: Run unit tests (Placeholder for running unit tests).
         run: echo "Running unit tests"
 
-  build-and-push-ecr-image:
+  build-and-push-ecr-image: # Continuous Delivery (CD)
     name: Continuous Delivery
-    needs: integration
+    needs: integration # This job will only run if integration succeeds.
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Code # needed again because each job runs in a fresh runner.
         uses: actions/checkout@v3
 
-      - name: Install Utilities
+      - name: Install Utilities # Install jq (for JSON processing) and unzip.
         run: |
           sudo apt-get update
           sudo apt-get install -y jq unzip
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials # Authenticates GitHub Actions with your AWS account.
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -60,12 +60,17 @@ jobs:
           # be deployed to ECS.
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          
+          # This tells GitHub Actions to create an output variable named image.
+          # $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -> This is the full URI of your Docker image in ECR.
+          # Downstream jobs (CD) can access this output using ${{ needs.build-and-push-ecr-image.outputs.image }}
+          
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
           
           
-  Continuous-Deployment:
-    needs: build-and-push-ecr-image
-    runs-on: self-hosted
+  Continuous-Deployment: # Deploy to server
+    needs: build-and-push-ecr-image # Runs only if the image was successfully built and pushed.
+    runs-on: self-hosted # This is your own server, likely where the service should run.
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -91,8 +96,17 @@ jobs:
       #    docker ps -q --filter "name=loan_default" | grep -q . && docker stop texts && docker rm -fv texts
        
       - name: Run Docker Image to serve users
-        run: |
+        run: | 
          docker run -d -p 8080:8080 --name=loan_default -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}'  ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+        
+        # docker run -> starts a new container.
+        # -d -> runs the container in detached mode (in the background).
+        # -p 8080:8080 -> maps host port 8080 to container port 8080.
+        # --name=loan_default -> names the container loan_default.
+        # -e... -> passes environment variables into the container.
+        # ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest → Specifies the Docker image to run.
+        
+      
       - name: Clean previous images and containers
         run: |
          docker system prune -f
