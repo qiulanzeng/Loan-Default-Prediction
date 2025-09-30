@@ -181,8 +181,7 @@ CI Goal: Catch code errors, formatting issues, failing tests early, before the i
         - Map host port (8080) to container port (8080)
         - Pass AWS credentials as environment variables
         - Starts serving predictions
-
     - Clean unused images/containers
         - Keeps EC2 clean and prevents disk bloat
-
+        
 CD Goal: Deploy a tested, working Docker image to EC2 automatically, safely replacing old versions.
