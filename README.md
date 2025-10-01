@@ -31,6 +31,7 @@ Go to AWS → IAM → Users → Create User
 ## Step 5: Launch EC2 instance
 - Choose Ubuntu, t2.micro or larger
 - Create and download a key pair (.pem file)
+- Check 'Allow HTTPS traffic from the internet' and 'Allow HTTP traffic from the internet'
 - Enable inbound rules for ports:
     - 22 (SSH)
     - 80 (HTTP)
@@ -43,8 +44,9 @@ Add rule:
     - Port: 8080
     - Source: 0.0.0.0/0 (or restrict to your IP)
     - Launch the instance
+- Click the instance -> Connect -> Connect (it will then launch a browser terminal)
 
-## Step 6: Install Docker on the EC2 instance (only need to install Docker once for one instance)
+## Step 6: Install Docker on the EC2 instance (only need to install Docker once for one instance) in the browser terminal
 
 #optinal
 - sudo apt-get update -y
@@ -60,9 +62,9 @@ Add rule:
 
 ## Step 7: Configure EC2 as a self-hosted GitHub runner
 In GitHub:
-- Settings → Actions → Runners → New self-hosted runner
+- Settings → Actions → Runners → New self-hosted runner -> Linux
 
-Follow instructions to:
+In the browser terminal, enter the commands from GitHub (follow instructions) to:
 - Download and install the runner on EC2
 - Run ./config.sh and ./run.sh
 - It will show as idle in GitHub runners list
@@ -183,5 +185,5 @@ CI Goal: Catch code errors, formatting issues, failing tests early, before the i
         - Starts serving predictions
     - Clean unused images/containers
         - Keeps EC2 clean and prevents disk bloat
-        
+
 CD Goal: Deploy a tested, working Docker image to EC2 automatically, safely replacing old versions.
