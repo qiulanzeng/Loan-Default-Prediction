@@ -65,8 +65,9 @@ In GitHub:
 - Settings → Actions → Runners → New self-hosted runner -> Linux
 
 In the browser terminal, enter the commands from GitHub (follow instructions) to:
-- Download and install the runner on EC2
-- Run ./config.sh and ./run.sh
+- Download the GitHub Actions runner on EC2, then extracts the runner binaries.
+- Run ./config.sh to register the EC2 
+- and ./run.sh
 - It will show as idle in GitHub runners list
 
 ## Step 8: Add GitHub secrets for AWS + ECR
